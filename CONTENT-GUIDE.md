@@ -111,18 +111,19 @@
 2) AI가 content/ 파일을 고친다
 3) AI가 검증한다        →  npm run build / npx tsc --noEmit / npm run lint
 4) 커밋 & 업로드        →  git commit + git push (main 브랜치)
-5) 배포 명령 실행        →  npx vercel --prod  (아래 ⚠️ 참고)
-6) 1~2분 후 https://kdy-math.vercel.app 반영
+5) 자동 배포             →  GitHub Actions 가 알아서 배포
+6) 1~3분 후 https://kdy-math.vercel.app 반영
 ```
 
-> ⚠️ **지금은 `git push` 만으로 사이트가 바뀌지 않는다.**
-> GitHub 자동 배포 연결이 아직 안 돼 있어서, 5번 배포 명령이 따로 필요하다.
-> 이 연결을 한 번만 해두면 5번이 사라지고 push 만으로 반영된다 →
-> 절차는 [DEPLOY.md](DEPLOY.md) 의 **4-C** 에 있다. 개발자에게 한 번 부탁하면 5분이면 끝난다.
+**5번은 사람이 할 일이 없다.** `push` 만 되면 나머지는 자동이다.
 
-AI에게 3~5번까지 한꺼번에 시켜도 된다.
+AI에게 3~4번까지 한꺼번에 시켜도 된다.
 
-> "고친 다음에 `npm run build`, `npx tsc --noEmit`, `npm run lint` 세 개를 실행해서 통과하는지 확인하고, 결과를 보여줘. 그다음 커밋해서 push하고, `npx vercel@latest --prod --yes --scope jenu8628s-projects` 로 배포까지 해줘. 커밋 메시지는 한국어로."
+> "고친 다음에 `npm run build`, `npx tsc --noEmit`, `npm run lint` 세 개를 실행해서 통과하는지 확인하고, 결과를 보여줘. 그다음 커밋해서 push해줘. 커밋 메시지는 한국어로."
+
+배포가 잘 됐는지 보려면 GitHub 저장소의 **Actions** 탭을 연다.
+- 초록 체크 ✅ → 배포 완료
+- 빨간 X ❌ → 코드에 오류가 있어 배포가 **멈췄다.** 사이트는 이전 상태 그대로이니 망가지지 않는다. AI에게 "Actions가 실패했어, 로그 보고 고쳐줘"라고 하면 된다.
 
 배포 상황은 Vercel 대시보드(팀 `jenu8628s-projects` → 프로젝트 `kdy-math`)에서 확인할 수 있다.
 

@@ -1,0 +1,76 @@
+# Vercel 자동 배포
+#
+# Vercel 의 GitHub 연동(Git Integration)을 쓰지 않고, GitHub Actions 가
+# Vercel CLI 를 실행해 배포한다.
+#
+# 왜 이 방식인가:
+#   Vercel 대시보드의 "Connect Git Repository" 가 무한 로딩으로 실패했다.
+#   (GitHub App 설치·재설치, 시크릿 창, Vercel 로그인 연결 재발급 모두 시도했으나 해결 안 됨.
+#    2026-07 무렵부터 동일 증상이 Vercel 커뮤니티에 다수 보고돼 있다.)
+#   이 워크플로는 Vercel 의 git 연동을 거치지 않으므로 그 문제와 무관하게 동작한다.
+#
+#   나중에 Vercel 쪽 git 연동이 정상화되면 이 파일을 삭제해도 된다.
+#   단 그때는 Vercel 프로젝트 설정에서 저장소를 연결해야 배포가 이어진다.
+#   (연동 없이 이 파일만 지우면 배포가 멈춘다)
+#
+# 필요한 설정 (이미 완료됨):
+#   저장소 Settings → Secrets and variables → Actions 에 VERCEL_TOKEN 등록
+#   토큰 발급: https://vercel.com/account/tokens
+#
+# 동작:
+#   main 브랜치 push        → 운영 배포 (kdy-math.vercel.app 갱신)
+#   그 외 브랜치 / PR push  → 미리보기 배포 (임시 주소, 운영에 영향 없음)
+#   Actions 탭에서 수동 실행 (workflow_dispatch) 도 가능
+
+name: Deploy to Vercel
+
+on:
+  push:
+    branches-ignore: []
+  pull_request:
+  workflow_dispatch:
+
+# 같은 브랜치에 연속 push 시 이전 실행을 취소해 배포 순서가 뒤바뀌는 것을 막는다
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # 이 두 ID 는 비밀값이 아니다(.vercel/project.json 에 저장되는 공개 식별자).
+  # VERCEL_TOKEN 없이는 아무 동작도 할 수 없으므로 노출되어도 무해하다.
+  VERCEL_ORG_ID: team_7iwrzJr44lLPXbYw3SKYSp47
+  VERCEL_PROJECT_ID: prj_1tD1R6EE39Q3bBCXUriwEMoibpji
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: 저장소 체크아웃
+        uses: actions/checkout@v4
+
+      - name: Node.js 설정
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: 의존성 설치
+        run: npm ci
+
+      # 실제 빌드는 Vercel 이 수행한다. 여기서는 빠르게 잡히는 오류만 미리 걸러
+      # 잘못된 코드가 배포 큐까지 가지 않게 한다.
+      - name: 타입 검사
+        run: npx tsc --noEmit
+
+      - name: 린트
+        run: npm run lint
+
+      - name: 운영 배포
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        run: npx vercel@latest deploy --prod --yes --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: 미리보기 배포
+        if: github.ref != 'refs/heads/main' || github.event_name == 'pull_request'
+        run: npx vercel@latest deploy --yes --token=${{ secrets.VERCEL_TOKEN }}

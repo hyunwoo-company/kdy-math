@@ -49,43 +49,28 @@ npm run lint
 
 세 개 모두 오류 없이 끝나야 올린다. AI에게 작업을 시켰다면 **"이 세 명령을 실행해서 통과했는지 확인하고 결과를 보여줘"** 라고 요구한다.
 
-## 4. 배포 흐름
+## 4. 배포 흐름 — push 하면 자동 배포된다
 
-> ⚠️ **현재 상태: GitHub 자동 배포가 아직 연결되지 않았다.**
-> Vercel 프로젝트는 만들어져 있고 `kdy-math.vercel.app` 도 살아 있지만,
-> GitHub 저장소와의 연동이 **Vercel GitHub App 미설치**로 실패했다.
-> 그래서 지금은 `git push` 만으로는 사이트가 갱신되지 않는다. 아래 4-A 로 배포하거나, 4-C 를 한 번 해두고 4-B 로 넘어가라.
-
-### 4-A. 지금 쓰는 방법 — CLI 로 직접 배포
+```
+파일 수정 → git add/commit → git push → GitHub Actions 실행 → Vercel 배포 → 1~3분 후 반영
+```
 
 ```bash
 git add -A
 git commit -m "홈 슬로건 문구 수정"
-git push                                              # 코드 백업(사이트는 아직 안 바뀜)
-
-npx vercel@latest --prod --yes --scope jenu8628s-projects   # 이 명령이 실제 배포
+git push
 ```
 
-마지막 명령이 끝나면 1~2분 안에 `kdy-math.vercel.app` 이 갱신된다.
-미리보기(운영에 영향 없는 임시 주소)만 만들려면 `--prod` 를 빼면 된다.
-
-Vercel 로그인이 안 돼 있으면 먼저 한 번:
-```bash
-npx vercel@latest login
-```
-
-### 4-B. 권장 — GitHub 자동 배포 (한 번 설정하면 계속 편하다)
-
-연결이 끝나면 아래처럼 **push 만으로** 배포된다. CLI 명령이 필요 없어진다.
-
-```
-파일 수정 → git add/commit → git push (main) → Vercel이 자동 빌드 → 1~2분 후 반영
-```
+**이것만 하면 끝이다.** 나머지는 자동이다.
 
 | push 대상 | 결과 |
 |---|---|
 | `main` 브랜치 | **운영 배포.** `kdy-math.vercel.app` 갱신 |
 | 그 외 브랜치 / Pull Request | **미리보기 배포.** 임시 주소가 생기고 운영 주소는 그대로 |
+
+배포 진행 상황은 두 곳에서 볼 수 있다.
+- GitHub 저장소 → **Actions** 탭 (여기가 먼저 돈다)
+- Vercel 대시보드 → 프로젝트 `kdy-math` → Deployments
 
 큰 변경은 브랜치로 미리보기를 먼저 확인한 뒤 `main` 에 합치는 것이 안전하다.
 
@@ -94,16 +79,45 @@ git switch -c fix-hero
 git push -u origin fix-hero   # 미리보기 배포 생성
 ```
 
-### 4-C. GitHub 자동 배포 연결 절차 (1회, 브라우저 작업)
+### 4-A. 배포를 담당하는 것 — `.github/workflows/deploy.yml`
 
-1. https://github.com/apps/vercel 접속 → **Install** (이미 설치돼 있으면 **Configure**)
-2. 설치 대상에서 **`hyunwoo-company`** 조직을 선택한다. 개인 계정만 고르면 이 저장소가 안 보인다.
-3. 저장소 접근 범위에서 **`kdy-math`** 를 포함시킨다(`All repositories` 도 가능).
-4. https://vercel.com/jenu8628s-projects/kdy-math/settings/git 로 이동
-5. **Connect Git Repository** → `hyunwoo-company/kdy-math` 선택
-6. Production Branch 가 `main` 인지 확인
+GitHub Actions 가 push 를 감지해 **Vercel CLI 로 배포**한다.
+순서: 체크아웃 → `npm ci` → `npx tsc --noEmit` → `npm run lint` → `vercel deploy`
 
-연결 확인: 아무 파일이나 고쳐 `main` 에 push하고, Vercel 대시보드에 `Source: GitHub` 로 표시된 배포가 자동으로 생기는지 본다.
+타입 오류나 린트 오류가 있으면 **배포 전에 멈춘다.** Actions 탭이 빨간 X 로 표시되고 사이트는 이전 상태를 유지한다.
+
+동작에 필요한 것은 저장소 Secret **`VERCEL_TOKEN`** 하나뿐이고, 이미 등록돼 있다.
+토큰을 새로 발급해야 하면: https://vercel.com/account/tokens → 발급 후
+```bash
+gh secret set VERCEL_TOKEN --repo hyunwoo-company/kdy-math
+```
+워크플로의 `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` 는 비밀값이 아니라 파일에 그대로 적혀 있다(토큰 없이는 아무 동작도 못 하는 공개 식별자).
+
+### 4-B. 수동 배포 (급할 때 / Actions 가 막혔을 때)
+
+```bash
+npx vercel@latest --prod --yes --scope jenu8628s-projects
+```
+
+로컬 파일을 Vercel 로 직접 올린다. git 을 거치지 않으므로 **커밋하지 않은 변경도 올라간다** — 의도한 게 아니라면 주의.
+Vercel 로그인이 안 돼 있으면 먼저 `npx vercel@latest login`.
+
+### 4-C. 왜 Vercel 의 GitHub 연동을 쓰지 않는가
+
+Vercel 대시보드의 **Connect Git Repository** 가 무한 로딩으로 실패한다. 아래를 전부 시도했으나 해결되지 않았다.
+
+- Vercel GitHub App 을 `hyunwoo-company` 조직에 설치
+- 시크릿 창(쿠키·확장 프로그램 영향 배제)
+- Vercel 계정의 GitHub 로그인 연결 disconnect → reconnect
+- `vercel git connect` CLI
+
+같은 증상이 [Vercel 커뮤니티](https://community.vercel.com/t/github-commits-not-triggering-vercel-deployments-git-integration-broken/45476)에 2026-07 무렵부터 다수 보고돼 있고, "Connected 로 표시되는데도 배포가 안 되고 재연결도 통하지 않는다"는 사례가 포함된다.
+이 팀에서도 2026-04 에 만든 `fgg-game` 만 연동돼 있고, 08 월에 만든 프로젝트들은 전부 연동되지 않았다.
+
+**그래서 Actions 로 우회했다.** 결과는 같고(push → 자동 배포), Vercel 의 git 연동 상태와 무관하게 동작한다.
+
+> 나중에 Vercel 쪽이 정상화되어 대시보드에서 저장소를 연결한다면, 그때는 배포가 **두 번** 일어난다(Actions + Vercel 자체).
+> 그 경우 `.github/workflows/deploy.yml` 을 삭제하라. **연동하지 않은 채로 이 파일만 지우면 배포가 멈춘다.**
 
 ### 아직 첫 커밋이 없는 경우
 
