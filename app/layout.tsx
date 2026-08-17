@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 // (단일 가변 폰트 파일은 2MB 를 무조건 전송해서 첫 로딩이 느렸다.)
 import "./pretendard.css";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Nav } from "@/components/Nav";
 import { Footer } from "@/components/sections/Footer";
 import { seo, titleTemplate } from "@/content";
@@ -44,6 +45,10 @@ export default function RootLayout({
         <Nav />
         <main className="pt-12">{children}</main>
         <Footer />
+        {/* Vercel Web Analytics — 방문자 수·유입 경로·페이지별 조회수를 수집한다.
+            결과는 https://vercel.com/jenu8628s-projects/kdy-math/analytics 에서 본다.
+            개발 환경에서는 전송하지 않으므로 로컬 작업은 집계에 섞이지 않는다. */}
+        <Analytics />
       </body>
     </html>
   );

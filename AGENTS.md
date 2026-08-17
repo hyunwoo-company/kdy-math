@@ -36,6 +36,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 | 아이콘 | `lucide-react` |
 | 유틸 | `clsx` + `tailwind-merge` → `lib/utils.ts` 의 `cn()` |
 | 애니메이션 | **CSS transition + IntersectionObserver** (`components/ui/Reveal.tsx`) |
+| 분석 | Vercel Web Analytics (`@vercel/analytics`). `app/layout.tsx` 의 `<Analytics />` 하나로 동작하며 개발 환경에서는 전송하지 않는다 |
 | 린트 | ESLint 9 + `eslint-config-next` (`npm run lint` = `eslint`) |
 | Node | `next@16.3.1` 요구사항 `>=20.9.0` |
 
