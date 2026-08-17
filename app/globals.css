@@ -76,6 +76,11 @@
   /* --- Colors (모드 무관) --- */
   --color-accent: #0071e3;
   --color-accent-hover: #0077ed;
+  /* 다크모드에서도 #ffffff 로 고정되는 표면.
+     QR 코드처럼 "밝은 바탕 + 어두운 패턴" 이라야 인식되는 요소 전용이다.
+     (다크모드에서 --color-bg 는 #000000 이 되므로 QR 이 배경에 묻힌다)
+     일반 카드에는 쓰지 말고 bg / bg-alt 를 쓴다. */
+  --color-surface-light: #ffffff;
 
   /* --- Font ---
      'Pretendard Variable' 은 app/pretendard.css 의 @font-face 92개(unicode-range 분할)로

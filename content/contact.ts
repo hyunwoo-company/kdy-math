@@ -21,10 +21,11 @@
  *
  * 참고: 폼(입력창)은 만들지 않습니다. 서버 없이 동작하는 정적 사이트이므로
  *       전화 · 이메일 · 카카오톡 채널 링크로만 연결합니다.
- *       QR 코드는 채널 주소가 확정된 뒤 별도로 처리합니다.
+ *       카카오톡 채널 QR 은 채널 주소가 확정된 뒤 별도로 처리합니다.
+ *       (사이트 주소 QR 은 아래 qr 에 이미 있습니다)
  */
 
-import type { InfoItem, Intro, PageMeta } from "./site";
+import type { InfoItem, Intro, PageMeta, Photo } from "./site";
 
 /** 연락 수단 한 가지 */
 export type ContactChannel = {
@@ -98,6 +99,36 @@ export const contact = {
     { label: "상담 방식", value: "전화 상담 또는 방문 상담" },
     { label: "소요 시간", value: "30분 내외" },
   ] satisfies InfoItem[],
+
+  /**
+   * 사이트 주소로 연결되는 QR 코드 (상담 문의 페이지 맨 아래).
+   *
+   * 데스크톱으로 보시던 분이 휴대폰으로 이어 보거나, 다른 학부모에게
+   * 주소를 알려줄 때 쓰는 보조 수단입니다. 그래서 연락 방법 아래에 둡니다.
+   *
+   * ⚠️ 이미지 파일(public/qr/)은 scripts/generate-qr.js 로 만들어 둔 것입니다.
+   *    사이트 주소가 바뀌면 그 스크립트의 SITE_URL 을 고쳐 다시 만들고,
+   *    아래 url 문구도 함께 고쳐야 합니다. (둘이 어긋나면 안 됩니다)
+   *    파일을 내려받는 링크는 두지 않습니다 — 방문자에게는 필요하지 않습니다.
+   */
+  qr: {
+    title: "휴대폰으로 이어서 보기",
+    description:
+      "휴대폰 카메라로 아래 QR 코드를 비추면 이 사이트가 바로 열립니다. 다른 분께 주소를 알려주실 때도 이 화면을 보여주시면 됩니다.",
+    /** QR 코드 아래에 함께 보이는 주소. 스캔이 어려울 때 직접 입력할 수 있게 둡니다 */
+    url: "kdy-math.vercel.app",
+    /**
+     * 화면 표시는 벡터(SVG)를 씁니다 — 확대해도 깨지지 않습니다.
+     * width/height 는 site-qr.svg 의 viewBox(33×33 모듈)와 같은 값이며,
+     * 실제 표시 크기가 아니라 가로세로 비율(1:1)을 알려주는 용도입니다.
+     */
+    image: {
+      src: "/qr/site-qr.svg",
+      alt: "사이트 주소 kdy-math.vercel.app 로 연결되는 QR 코드",
+      width: 33,
+      height: 33,
+    } satisfies Photo,
+  },
 
   /**
    * 페이지 상단에 표시되는 임시 안내.
