@@ -111,13 +111,69 @@ Vercel 대시보드의 **Connect Git Repository** 가 무한 로딩으로 실패
 - Vercel 계정의 GitHub 로그인 연결 disconnect → reconnect
 - `vercel git connect` CLI
 
-같은 증상이 [Vercel 커뮤니티](https://community.vercel.com/t/github-commits-not-triggering-vercel-deployments-git-integration-broken/45476)에 2026-07 무렵부터 다수 보고돼 있고, "Connected 로 표시되는데도 배포가 안 되고 재연결도 통하지 않는다"는 사례가 포함된다.
-이 팀에서도 2026-04 에 만든 `fgg-game` 만 연동돼 있고, 08 월에 만든 프로젝트들은 전부 연동되지 않았다.
+**직접 원인: 2026-08-17 GitHub 대규모 장애.** [githubstatus.com](https://www.githubstatus.com/) 기준 **API Requests 가 Major Outage**, Git Operations·Webhooks 는 Degraded, 웹/API 트래픽 약 20% 오류율이었다(SAML/OIDC·SCIM·Team Sync 영향 포함). Vercel 이 저장소 목록을 가져오려면 GitHub API 를 호출해야 하므로 응답이 오지 않아 스피너가 멈춘다. 같은 시각 아래도 전부 실패했다.
+
+- `gh api /user/orgs` → 503
+- `gh api /orgs/hyunwoo-company/memberships/{user}` → 503
+- GitHub 앱 설치 페이지 → *"We couldn't respond to your request in time"*
+
+배경 요인도 있다. 같은 증상이 [Vercel 커뮤니티](https://community.vercel.com/t/github-commits-not-triggering-vercel-deployments-git-integration-broken/45476)에 2026-07 무렵부터 보고돼 있고("Connected 로 표시되는데도 배포가 안 되고 재연결도 통하지 않음"), 이 팀에서도 2026-04 에 만든 `fgg-game` 만 연동돼 있고 08 월 생성 프로젝트는 전부 연동되지 않았다. 즉 **장애가 걷힌 뒤에도 안 될 가능성이 남아 있다.**
 
 **그래서 Actions 로 우회했다.** 결과는 같고(push → 자동 배포), Vercel 의 git 연동 상태와 무관하게 동작한다.
 
-> 나중에 Vercel 쪽이 정상화되어 대시보드에서 저장소를 연결한다면, 그때는 배포가 **두 번** 일어난다(Actions + Vercel 자체).
-> 그 경우 `.github/workflows/deploy.yml` 을 삭제하라. **연동하지 않은 채로 이 파일만 지우면 배포가 멈춘다.**
+### 4-D. 나중에 Vercel git 연동으로 전환하는 절차
+
+배포 관리를 Vercel 쪽에 넘기고 싶을 때 따라간다. **급하지 않다** — 4-A 방식으로 이미 정상 배포되고 있다.
+
+**0단계. GitHub 장애가 걷혔는지 먼저 확인한다.** 이걸 건너뛰면 아래가 전부 실패하고 원인을 오해하게 된다.
+```bash
+gh api /orgs/hyunwoo-company/installations   # 503 이 아니라 JSON 이 나와야 한다
+```
+[githubstatus.com](https://www.githubstatus.com/) 에서 **API Requests 가 Operational** 인지도 함께 본다.
+
+**1단계. 조직에 Vercel GitHub App 을 설치한다.** (조직 소유자 권한 필요)
+```
+https://github.com/apps/vercel/installations/new/permissions?target_id=279386152
+```
+`target_id` 는 `hyunwoo-company` 의 조직 ID 다(`gh api /orgs/hyunwoo-company` 의 `id`).
+설치 화면에서 저장소 범위에 **`kdy-math`** 를 포함시킨다.
+버튼이 안 보이면 조직 소유자가 아닐 수 있다. 확인:
+```bash
+gh api /orgs/hyunwoo-company/memberships/<본인 GitHub 아이디>   # role 이 "admin" 이어야 설치 가능
+```
+
+**2단계. 설치 확인.**
+```bash
+gh api /orgs/hyunwoo-company/installations
+```
+`app_slug: "vercel"` 항목이 보여야 한다.
+
+**3단계. Vercel 프로젝트에 저장소를 연결한다.**
+```bash
+npx vercel@latest git connect --yes --scope jenu8628s-projects
+```
+실패하면 대시보드에서: https://vercel.com/jenu8628s-projects/kdy-math/settings/git → **Connect Git Repository** → GitHub → `hyunwoo-company/kdy-math`
+
+**4단계. 연결됐는지 객관적으로 확인한다.** 대시보드 표시를 믿지 말고 **도메인 목록**을 본다.
+```bash
+npx vercel@latest project inspect kdy-math --scope jenu8628s-projects
+```
+연동에 성공하면 **`kdy-math-git-main-jenu8628s-projects.vercel.app`** 형태의 `-git-<브랜치>-` 도메인이 자동 생성된다. 이 도메인이 없으면 연동되지 않은 것이다(연동된 `fgg-game` 에는 있고, 미연동 프로젝트에는 없다).
+
+**5단계. Actions 워크플로를 제거한다.**
+연동이 확인된 **뒤에만** 한다. 그러지 않으면 배포가 멈춘다.
+```bash
+git rm .github/workflows/deploy.yml
+git commit -m "Vercel git 연동으로 전환, Actions 배포 워크플로 제거"
+git push
+```
+제거하지 않고 두면 push 할 때마다 **배포가 두 번** 일어난다(Actions + Vercel 자체).
+
+**6단계(선택).** 더 이상 쓰지 않는 토큰을 정리한다.
+```bash
+gh secret delete VERCEL_TOKEN --repo hyunwoo-company/kdy-math
+```
+https://vercel.com/account/tokens 에서 해당 토큰도 revoke 한다.
 
 ### 아직 첫 커밋이 없는 경우
 
