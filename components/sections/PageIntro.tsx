@@ -14,10 +14,11 @@ export function PageIntro({ intro, photo }: PageIntroProps) {
   return (
     <section id="top" className="bg-bg py-20 md:py-40">
       <div className="mx-auto w-full max-w-content px-6 md:px-10">
+        {/* 2열 분할은 lg(1024px)부터. md(768px)에서 나누면 텍스트 열이 264px 로 좁아진다. */}
         <div
           className={cn(
-            "grid items-center gap-12 md:gap-16",
-            photo && "md:grid-cols-[minmax(0,1fr)_minmax(0,360px)]",
+            "grid items-center gap-12 lg:gap-16",
+            photo && "lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]",
           )}
         >
           <div>
@@ -25,7 +26,8 @@ export function PageIntro({ intro, photo }: PageIntroProps) {
               <p className="text-caption text-text-secondary break-keep">
                 {intro.eyebrow}
               </p>
-              <h1 className="mt-4 max-w-[22ch] text-h1 text-balance break-keep md:text-h1-lg">
+              {/* 페이지 최상단 제목이므로 데스크톱에서 Display(64px) — 페이지당 1회 */}
+              <h1 className="mt-4 max-w-[24ch] text-h1 text-balance break-keep md:text-display">
                 {intro.title.map((line) => (
                   <span key={line} className="block">
                     {line}
@@ -35,7 +37,7 @@ export function PageIntro({ intro, photo }: PageIntroProps) {
             </Reveal>
 
             <Reveal immediate delay={0.08}>
-              <p className="mt-6 max-w-[60ch] text-body-l text-text-secondary text-pretty break-keep md:text-body-l-lg">
+              <p className="mt-6 max-w-[65ch] text-body-l text-text-secondary text-pretty break-keep md:text-body-l-lg">
                 {intro.lead}
               </p>
             </Reveal>
@@ -43,13 +45,14 @@ export function PageIntro({ intro, photo }: PageIntroProps) {
 
           {photo ? (
             <Reveal immediate delay={0.16}>
-              <div className="relative aspect-[2/3] w-full overflow-hidden rounded-container bg-bg-alt">
+              {/* 세로 사진(1067x1600). 폭을 360px 로 제한하지 않으면 1열로 쌓일 때 높이가 1000px 을 넘는다 */}
+              <div className="relative aspect-[2/3] w-full max-w-[360px] overflow-hidden rounded-container bg-bg-alt">
                 <Image
                   src={photo.src}
                   alt={photo.alt}
                   fill
                   priority
-                  sizes="(min-width: 768px) 360px, calc(100vw - 48px)"
+                  sizes="(min-width: 408px) 360px, calc(100vw - 48px)"
                   className="object-cover"
                 />
               </div>

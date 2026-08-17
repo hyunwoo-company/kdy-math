@@ -41,7 +41,7 @@ yarn-error.log*
 next-env.d.ts
 
 # 원본 사진 (각 10MB대). 리사이즈본만 public/images/ 에 커밋한다.
-# 재리사이즈에 필요하므로 로컬에서는 삭제하지 말 것 (tmp/resize-images.js 참고)
+# 재리사이즈에 필요하므로 로컬에서는 삭제하지 말 것 (scripts/resize-images.js 로 재생성)
 /_source-images/
 
 # 작업용 임시 파일

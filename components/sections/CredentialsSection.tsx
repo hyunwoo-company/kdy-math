@@ -70,20 +70,22 @@ export function CredentialsSection({
 
   return (
     <Section id={id} labelledBy={titleId} alt={alt}>
+      {/* 2열 분할은 lg(1024px)부터. md(768px)에서 나누면 텍스트 열이 264px 로 좁아진다. */}
       <div
         className={cn(
-          "grid gap-12 md:gap-16",
-          photo && "md:grid-cols-[minmax(0,360px)_minmax(0,1fr)] md:items-start",
+          "grid gap-12 lg:gap-16",
+          photo && "lg:grid-cols-[minmax(0,360px)_minmax(0,1fr)] lg:items-start",
         )}
       >
         {photo ? (
           <Reveal>
-            <div className="relative aspect-[2/3] w-full overflow-hidden rounded-container bg-bg-alt">
+            {/* 세로 사진(1067x1600). 폭을 360px 로 제한해 높이를 540px 로 고정한다 */}
+            <div className="relative aspect-[2/3] w-full max-w-[360px] overflow-hidden rounded-container bg-bg-alt">
               <Image
                 src={photo.src}
                 alt={photo.alt}
                 fill
-                sizes="(min-width: 768px) 360px, calc(100vw - 48px)"
+                sizes="(min-width: 408px) 360px, calc(100vw - 48px)"
                 className="object-cover"
               />
             </div>

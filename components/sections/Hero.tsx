@@ -42,15 +42,17 @@ export function Hero() {
       </div>
 
       <Reveal immediate delay={0.24} className="mt-16 md:mt-20">
-        <div className="mx-auto w-full max-w-wide px-6 md:px-10">
+        {/* 가로 사진이라 컨테이너 전체 폭으로 두면 세로 높이가 첫 화면을 덮는다.
+            폭을 640px 로 제한해 높이를 427px 로 낮춘다(1600x1067 원본 비율 유지). */}
+        <div className="mx-auto w-full max-w-content px-6 md:px-10">
           <Image
             src={photos.hero.src}
             alt={photos.hero.alt}
             width={photos.hero.width}
             height={photos.hero.height}
             priority
-            sizes="(min-width: 1440px) 1360px, (min-width: 768px) calc(100vw - 80px), calc(100vw - 48px)"
-            className="h-auto w-full rounded-container object-cover"
+            sizes="(min-width: 688px) 640px, calc(100vw - 48px)"
+            className="mx-auto h-auto w-full max-w-[640px] rounded-container"
           />
         </div>
       </Reveal>

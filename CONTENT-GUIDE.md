@@ -111,12 +111,18 @@
 2) AI가 content/ 파일을 고친다
 3) AI가 검증한다        →  npm run build / npx tsc --noEmit / npm run lint
 4) 커밋 & 업로드        →  git commit + git push (main 브랜치)
-5) Vercel이 자동 배포   →  1~2분 후 https://kdy-math.vercel.app 반영
+5) 배포 명령 실행        →  npx vercel --prod  (아래 ⚠️ 참고)
+6) 1~2분 후 https://kdy-math.vercel.app 반영
 ```
 
-AI에게 3~4번까지 한꺼번에 시켜도 된다.
+> ⚠️ **지금은 `git push` 만으로 사이트가 바뀌지 않는다.**
+> GitHub 자동 배포 연결이 아직 안 돼 있어서, 5번 배포 명령이 따로 필요하다.
+> 이 연결을 한 번만 해두면 5번이 사라지고 push 만으로 반영된다 →
+> 절차는 [DEPLOY.md](DEPLOY.md) 의 **4-C** 에 있다. 개발자에게 한 번 부탁하면 5분이면 끝난다.
 
-> "고친 다음에 `npm run build`, `npx tsc --noEmit`, `npm run lint` 세 개를 실행해서 통과하는지 확인하고, 결과를 보여준 다음 커밋해서 push 해줘. 커밋 메시지는 한국어로."
+AI에게 3~5번까지 한꺼번에 시켜도 된다.
+
+> "고친 다음에 `npm run build`, `npx tsc --noEmit`, `npm run lint` 세 개를 실행해서 통과하는지 확인하고, 결과를 보여줘. 그다음 커밋해서 push하고, `npx vercel@latest --prod --yes --scope jenu8628s-projects` 로 배포까지 해줘. 커밋 메시지는 한국어로."
 
 배포 상황은 Vercel 대시보드(팀 `jenu8628s-projects` → 프로젝트 `kdy-math`)에서 확인할 수 있다.
 
@@ -132,8 +138,8 @@ AI에게 3~4번까지 한꺼번에 시켜도 된다.
 ## 5. 잘못 고쳤을 때 되돌리기
 
 - **아직 push하지 않았다면**: "방금 수정한 것 전부 되돌려줘(git으로 원복)."
-- **이미 배포됐다면**: "직전 커밋으로 되돌리고 push 해줘." 1~2분 뒤 사이트가 이전 상태로 돌아온다.
-- Vercel 대시보드의 이전 배포 목록에서 **Rollback(이전 배포로 되돌리기)** 도 가능하다.
+- **이미 배포됐다면**: "직전 커밋으로 되돌리고 push한 다음, 배포 명령까지 실행해줘." 1~2분 뒤 사이트가 이전 상태로 돌아온다.
+- **가장 빠른 방법**: Vercel 대시보드(팀 `jenu8628s-projects` → 프로젝트 `kdy-math`)의 배포 목록에서 이전 배포를 골라 **Rollback**. 코드를 건드리지 않고 즉시 되돌아간다. 단 이건 화면만 되돌리는 것이므로, 코드도 원복해두지 않으면 다음 배포에서 문제가 다시 나타난다.
 
 ## 6. 아직 비어 있는 정보
 

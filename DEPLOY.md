@@ -51,27 +51,59 @@ npm run lint
 
 ## 4. 배포 흐름
 
-```
-파일 수정 → git add/commit → git push (main) → Vercel이 자동 빌드 → 1~2분 후 kdy-math.vercel.app 반영
-```
+> ⚠️ **현재 상태: GitHub 자동 배포가 아직 연결되지 않았다.**
+> Vercel 프로젝트는 만들어져 있고 `kdy-math.vercel.app` 도 살아 있지만,
+> GitHub 저장소와의 연동이 **Vercel GitHub App 미설치**로 실패했다.
+> 그래서 지금은 `git push` 만으로는 사이트가 갱신되지 않는다. 아래 4-A 로 배포하거나, 4-C 를 한 번 해두고 4-B 로 넘어가라.
+
+### 4-A. 지금 쓰는 방법 — CLI 로 직접 배포
 
 ```bash
 git add -A
 git commit -m "홈 슬로건 문구 수정"
-git push
+git push                                              # 코드 백업(사이트는 아직 안 바뀜)
+
+npx vercel@latest --prod --yes --scope jenu8628s-projects   # 이 명령이 실제 배포
+```
+
+마지막 명령이 끝나면 1~2분 안에 `kdy-math.vercel.app` 이 갱신된다.
+미리보기(운영에 영향 없는 임시 주소)만 만들려면 `--prod` 를 빼면 된다.
+
+Vercel 로그인이 안 돼 있으면 먼저 한 번:
+```bash
+npx vercel@latest login
+```
+
+### 4-B. 권장 — GitHub 자동 배포 (한 번 설정하면 계속 편하다)
+
+연결이 끝나면 아래처럼 **push 만으로** 배포된다. CLI 명령이 필요 없어진다.
+
+```
+파일 수정 → git add/commit → git push (main) → Vercel이 자동 빌드 → 1~2분 후 반영
 ```
 
 | push 대상 | 결과 |
 |---|---|
-| `main` 브랜치 | **운영 배포.** `kdy-math.vercel.app` 이 갱신된다 |
-| 그 외 브랜치 / Pull Request | **미리보기(Preview) 배포.** 임의의 주소가 생성되고 운영 주소는 그대로. PR 화면과 Vercel 대시보드에서 미리보기 링크를 확인할 수 있다 |
+| `main` 브랜치 | **운영 배포.** `kdy-math.vercel.app` 갱신 |
+| 그 외 브랜치 / Pull Request | **미리보기 배포.** 임시 주소가 생기고 운영 주소는 그대로 |
 
-큰 변경은 브랜치를 만들어 미리보기로 먼저 확인한 뒤 `main` 에 합치는 것이 안전하다.
+큰 변경은 브랜치로 미리보기를 먼저 확인한 뒤 `main` 에 합치는 것이 안전하다.
 
 ```bash
-git switch -c fix-hero      # 새 브랜치
-git push -u origin fix-hero # 미리보기 배포 생성
+git switch -c fix-hero
+git push -u origin fix-hero   # 미리보기 배포 생성
 ```
+
+### 4-C. GitHub 자동 배포 연결 절차 (1회, 브라우저 작업)
+
+1. https://github.com/apps/vercel 접속 → **Install** (이미 설치돼 있으면 **Configure**)
+2. 설치 대상에서 **`hyunwoo-company`** 조직을 선택한다. 개인 계정만 고르면 이 저장소가 안 보인다.
+3. 저장소 접근 범위에서 **`kdy-math`** 를 포함시킨다(`All repositories` 도 가능).
+4. https://vercel.com/jenu8628s-projects/kdy-math/settings/git 로 이동
+5. **Connect Git Repository** → `hyunwoo-company/kdy-math` 선택
+6. Production Branch 가 `main` 인지 확인
+
+연결 확인: 아무 파일이나 고쳐 `main` 에 push하고, Vercel 대시보드에 `Source: GitHub` 로 표시된 배포가 자동으로 생기는지 본다.
 
 ### 아직 첫 커밋이 없는 경우
 
@@ -83,25 +115,31 @@ git commit -m "초기 커밋 — 강사 프로필 사이트"
 git push -u origin main
 ```
 
-## 5. Vercel 초기 설정 (프로젝트를 처음 연결할 때, 1회)
+## 5. Vercel 프로젝트 현황 (이미 만들어져 있음)
 
-1. https://vercel.com 에 GitHub 계정으로 로그인한다.
-2. 화면 왼쪽 위에서 팀 **`jenu8628s-projects`** 를 선택한다. (개인 계정에 만들면 주소·권한이 달라진다)
-3. **Add New → Project** → GitHub 저장소 목록에서 **`hyunwoo-company/kdy-math`** 를 **Import**.
-   - 저장소가 안 보이면 `Adjust GitHub App Permissions` 로 해당 저장소 접근 권한을 준다.
-4. 설정 화면에서 아래만 확인한다.
+이 프로젝트는 **이미 생성·배포 완료** 상태다. 아래는 실제 값이다.
 
 | 항목 | 값 |
 |---|---|
-| Project Name | **`kdy-math`** — 이 이름이 그대로 `kdy-math.vercel.app` 주소가 된다 |
-| Framework Preset | **Next.js** (자동 감지됨. 손대지 않는다) |
-| Root Directory | **저장소 루트** (기본값. 이 저장소는 모노레포가 아니다) |
-| Build / Output / Install Command | **기본값 그대로** |
-| Environment Variables | **없음** (이 프로젝트는 환경변수를 쓰지 않는다) |
+| 팀 | `jenu8628s-projects` |
+| 프로젝트 이름 | `kdy-math` |
+| 운영 주소 | **https://kdy-math.vercel.app** (확보 완료) |
+| Framework | Next.js (자동 감지) |
+| Root Directory | 저장소 루트 (모노레포 아님) |
+| Environment Variables | 없음 |
+| Git 연동 | ❌ **미연결** — 4-C 절차 필요 |
 
-5. **Deploy** 를 누른다. 이후로는 `main` 에 push할 때마다 자동 배포된다.
+프로젝트를 로컬과 연결하는 정보는 `.vercel/project.json` 에 저장돼 있다(gitignore 대상).
+새 컴퓨터에서 배포하려면 먼저 한 번:
 
-> 프로젝트 이름은 Vercel 전체에서 유일해야 한다. `kdy-math` 가 이미 선점돼 있으면 접미사가 붙은 다른 주소가 배정된다. 그 경우 실제 배정된 주소를 확인해서 QR 코드·명함에 반영해야 한다.
+```bash
+npx vercel@latest login
+npx vercel@latest link --yes --scope jenu8628s-projects --project kdy-math
+```
+
+> 프로젝트 이름은 Vercel 전체에서 유일해야 한다. `kdy-math` 는 이미 이 팀이 확보했으므로 주소가 바뀌지 않는다.
+> 다른 강사 사이트를 만들 때는 이름이 선점돼 있을 수 있고, 그 경우 접미사가 붙은 주소가 배정된다.
+> **QR 코드·명함을 만들기 전에 실제 배정된 주소를 반드시 확인하라.**
 
 ## 6. 새 강사 사이트를 만들 때
 
