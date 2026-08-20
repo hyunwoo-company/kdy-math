@@ -4,16 +4,30 @@ import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
 import { SectionHeading } from "@/components/ui/SectionHeading";
 import { home } from "@/content";
+import { cn } from "@/lib/utils";
 
-const cardLink =
-  "block rounded-card bg-bg-alt p-8 transition-colors duration-200 ease-apple " +
+const cardLinkBase =
+  "block rounded-card p-8 transition-colors duration-200 ease-apple " +
   "hover:bg-bg-alt-hover focus-visible:outline-none focus-visible:ring-2 " +
-  "focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
+  "focus-visible:ring-accent focus-visible:ring-offset-2";
+
+type AudienceLinksProps = {
+  /** true 면 `#f5f5f7` 배경 섹션 + 흰 카드 */
+  alt?: boolean;
+};
 
 /** 홈 → 학생용 / 학부모용 안내로 보내는 링크 카드 */
-export function AudienceLinks() {
+export function AudienceLinks({ alt = false }: AudienceLinksProps) {
+  // 회색 섹션 위에는 흰 카드, 흰 섹션 위에는 회색 카드
+  const cardLink = cn(
+    cardLinkBase,
+    alt
+      ? "bg-bg focus-visible:ring-offset-bg-alt"
+      : "bg-bg-alt focus-visible:ring-offset-bg",
+  );
+
   return (
-    <Section id="audience" labelledBy="audience-title">
+    <Section id="audience" labelledBy="audience-title" alt={alt}>
       <Reveal>
         <SectionHeading id="audience-title" {...home.audience.header} />
       </Reveal>

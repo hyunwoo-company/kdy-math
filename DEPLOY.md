@@ -49,10 +49,13 @@ npm run lint
 
 세 개 모두 오류 없이 끝나야 올린다. AI에게 작업을 시켰다면 **"이 세 명령을 실행해서 통과했는지 확인하고 결과를 보여줘"** 라고 요구한다.
 
+> ⚠️ **이 3종이 유일한 안전망이다.** 예전에는 GitHub Actions 가 push 직후 `tsc` 와 `lint` 를 자동으로 한 번 더 돌려서, 잘못된 코드가 배포되기 전에 막아 줬다. Vercel git 연동으로 전환하면서 그 자동 검사가 없어졌다(4-A). Vercel 은 `npm run build` 만 하고 `npm run lint` 는 하지 않는다.
+> 그러니 **push 전에 위 3개를 직접 돌리는 것을 건너뛰지 마라.**
+
 ## 4. 배포 흐름 — push 하면 자동 배포된다
 
 ```
-파일 수정 → git add/commit → git push → GitHub Actions 실행 → Vercel 배포 → 1~3분 후 반영
+파일 수정 → git add/commit → git push → Vercel 이 감지 → 빌드 → 배포 → 1~3분 후 반영
 ```
 
 ```bash
@@ -68,9 +71,8 @@ git push
 | `main` 브랜치 | **운영 배포.** `kdy-math.vercel.app` 갱신 |
 | 그 외 브랜치 / Pull Request | **미리보기 배포.** 임시 주소가 생기고 운영 주소는 그대로 |
 
-배포 진행 상황은 두 곳에서 볼 수 있다.
-- GitHub 저장소 → **Actions** 탭 (여기가 먼저 돈다)
-- Vercel 대시보드 → 프로젝트 `kdy-math` → Deployments
+배포 진행 상황은 **Vercel 대시보드 → 프로젝트 `kdy-math` → Deployments** 에서 본다.
+(GitHub Actions 는 더 이상 배포에 관여하지 않는다 → 4-A)
 
 큰 변경은 브랜치로 미리보기를 먼저 확인한 뒤 `main` 에 합치는 것이 안전하다.
 
@@ -79,19 +81,19 @@ git switch -c fix-hero
 git push -u origin fix-hero   # 미리보기 배포 생성
 ```
 
-### 4-A. 배포를 담당하는 것 — `.github/workflows/deploy.yml`
+### 4-A. 배포를 담당하는 것 — Vercel 의 GitHub 연동
 
-GitHub Actions 가 push 를 감지해 **Vercel CLI 로 배포**한다.
-순서: 체크아웃 → `npm ci` → `npx tsc --noEmit` → `npm run lint` → `vercel deploy`
+**2026-08-20 부터 Vercel 이 직접 배포한다.** push 를 Vercel 이 감지해 저장소를 가져와 빌드한다. 저장소 쪽에 설정 파일이나 시크릿이 따로 필요하지 않다.
 
-타입 오류나 린트 오류가 있으면 **배포 전에 멈춘다.** Actions 탭이 빨간 X 로 표시되고 사이트는 이전 상태를 유지한다.
+그전까지는 GitHub Actions 가 Vercel CLI 를 실행하는 방식이었다(연동이 안 돼서 우회한 것 → 4-C). 연동이 되면서 그 워크플로는 중복이 됐고, 두면 한 번의 push 에 배포가 두 번 일어나므로 보관 폴더로 옮겼다.
 
-동작에 필요한 것은 저장소 Secret **`VERCEL_TOKEN`** 하나뿐이고, 이미 등록돼 있다.
-토큰을 새로 발급해야 하면: https://vercel.com/account/tokens → 발급 후
-```bash
-gh secret set VERCEL_TOKEN --repo hyunwoo-company/kdy-math
 ```
-워크플로의 `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` 는 비밀값이 아니라 파일에 그대로 적혀 있다(토큰 없이는 아무 동작도 못 하는 공개 식별자).
+.github/workflows-archive/deploy.yml   ← 보관본. 실행되지 않는다
+```
+
+GitHub Actions 는 `.github/workflows/` 안의 파일만 읽으므로 이 경로에 있는 파일은 아무 동작도 하지 않는다. 되살리는 절차는 그 파일 맨 위 주석과 아래 4-D 에 적어 뒀다.
+
+**대신 없어진 것이 있다.** Actions 가 배포 전에 돌려 주던 `npx tsc --noEmit` 과 `npm run lint` 자동 검사가 사라졌다. Vercel 은 `npm run build` 만 한다. 그래서 **push 전 검증 3종(3절)을 사람이 직접 돌려야 한다.**
 
 ### 4-B. 수동 배포 (급할 때 / Actions 가 막혔을 때)
 
@@ -102,9 +104,11 @@ npx vercel@latest --prod --yes --scope jenu8628s-projects
 로컬 파일을 Vercel 로 직접 올린다. git 을 거치지 않으므로 **커밋하지 않은 변경도 올라간다** — 의도한 게 아니라면 주의.
 Vercel 로그인이 안 돼 있으면 먼저 `npx vercel@latest login`.
 
-### 4-C. 왜 Vercel 의 GitHub 연동을 쓰지 않는가
+### 4-C. (기록) 왜 한동안 Actions 로 우회했는가
 
-Vercel 대시보드의 **Connect Git Repository** 가 무한 로딩으로 실패한다. 아래를 전부 시도했으나 해결되지 않았다.
+> **이 문제는 2026-08-20 해결됐다.** 아래는 왜 그런 우회 구조가 있었는지, 같은 증상이 재발했을 때 무엇을 의심해야 하는지 남겨 두는 기록이다.
+
+당시 Vercel 대시보드의 **Connect Git Repository** 가 무한 로딩으로 실패했다. 아래를 전부 시도했으나 해결되지 않았다.
 
 - Vercel GitHub App 을 `hyunwoo-company` 조직에 설치
 - 시크릿 창(쿠키·확장 프로그램 영향 배제)
@@ -117,13 +121,15 @@ Vercel 대시보드의 **Connect Git Repository** 가 무한 로딩으로 실패
 - `gh api /orgs/hyunwoo-company/memberships/{user}` → 503
 - GitHub 앱 설치 페이지 → *"We couldn't respond to your request in time"*
 
-배경 요인도 있다. 같은 증상이 [Vercel 커뮤니티](https://community.vercel.com/t/github-commits-not-triggering-vercel-deployments-git-integration-broken/45476)에 2026-07 무렵부터 보고돼 있고("Connected 로 표시되는데도 배포가 안 되고 재연결도 통하지 않음"), 이 팀에서도 2026-04 에 만든 `fgg-game` 만 연동돼 있고 08 월 생성 프로젝트는 전부 연동되지 않았다. 즉 **장애가 걷힌 뒤에도 안 될 가능성이 남아 있다.**
+배경 요인도 있었다. 같은 증상이 [Vercel 커뮤니티](https://community.vercel.com/t/github-commits-not-triggering-vercel-deployments-git-integration-broken/45476)에 2026-07 무렵부터 보고돼 있었고("Connected 로 표시되는데도 배포가 안 되고 재연결도 통하지 않음"), 이 팀에서도 2026-04 에 만든 `fgg-game` 만 연동돼 있고 08 월 생성 프로젝트는 전부 연동되지 않았다.
 
-**그래서 Actions 로 우회했다.** 결과는 같고(push → 자동 배포), Vercel 의 git 연동 상태와 무관하게 동작한다.
+**그래서 Actions 로 우회했다.** 결과는 같았고(push → 자동 배포), Vercel 의 git 연동 상태와 무관하게 동작했다.
 
-### 4-D. 나중에 Vercel git 연동으로 전환하는 절차
+**결론:** GitHub API 장애가 걷힌 뒤 연동이 정상적으로 붙었다(2026-08-20). 같은 증상이 다시 보이면 **먼저 [githubstatus.com](https://www.githubstatus.com/) 의 API Requests 항목을 확인하라.** Vercel 쪽 설정을 만지기 전에 볼 것은 그쪽이다.
 
-배포 관리를 Vercel 쪽에 넘기고 싶을 때 따라간다. **급하지 않다** — 4-A 방식으로 이미 정상 배포되고 있다.
+### 4-D. (완료) Vercel git 연동 전환 절차
+
+> **이 전환은 2026-08-20 완료됐다.** 아래는 실제로 따라간 절차이며, 새 강사 사이트를 만들 때(6절)나 연동이 다시 깨졌을 때 재사용한다.
 
 **0단계. GitHub 장애가 걷혔는지 먼저 확인한다.** 이걸 건너뛰면 아래가 전부 실패하고 원인을 오해하게 된다.
 ```bash
@@ -160,30 +166,26 @@ npx vercel@latest project inspect kdy-math --scope jenu8628s-projects
 ```
 연동에 성공하면 **`kdy-math-git-main-jenu8628s-projects.vercel.app`** 형태의 `-git-<브랜치>-` 도메인이 자동 생성된다. 이 도메인이 없으면 연동되지 않은 것이다(연동된 `fgg-game` 에는 있고, 미연동 프로젝트에는 없다).
 
-**5단계. Actions 워크플로를 제거한다.**
+**5단계. Actions 배포 워크플로를 치운다.**
 연동이 확인된 **뒤에만** 한다. 그러지 않으면 배포가 멈춘다.
+지우지 말고 **보관 폴더로 옮긴다.** 나중에 연동이 깨지면 그대로 되살릴 수 있다.
 ```bash
-git rm .github/workflows/deploy.yml
-git commit -m "Vercel git 연동으로 전환, Actions 배포 워크플로 제거"
+mkdir -p .github/workflows-archive
+git mv .github/workflows/deploy.yml .github/workflows-archive/deploy.yml
+git commit -m "Vercel git 연동으로 전환, Actions 배포 워크플로 보관"
 git push
 ```
-제거하지 않고 두면 push 할 때마다 **배포가 두 번** 일어난다(Actions + Vercel 자체).
+GitHub Actions 는 `.github/workflows/` 안의 파일만 읽으므로 옮기는 것만으로 실행이 멈춘다.
+치우지 않고 두면 push 할 때마다 **배포가 두 번** 일어난다(Actions + Vercel 자체).
+
+> ⚠️ 이 단계로 `tsc` / `lint` **자동 검사도 함께 사라진다.** 이후로는 push 전에 검증 3종(3절)을 직접 돌려야 한다.
 
 **6단계(선택).** 더 이상 쓰지 않는 토큰을 정리한다.
 ```bash
 gh secret delete VERCEL_TOKEN --repo hyunwoo-company/kdy-math
 ```
 https://vercel.com/account/tokens 에서 해당 토큰도 revoke 한다.
-
-### 아직 첫 커밋이 없는 경우
-
-이 저장소는 `main` 브랜치와 원격(`origin`)이 설정돼 있으나 **커밋이 아직 없다**(문서 작성 시점 기준). 첫 업로드는 아래처럼 한다.
-
-```bash
-git add -A
-git commit -m "초기 커밋 — 강사 프로필 사이트"
-git push -u origin main
-```
+단 5단계 보관본을 되살릴 가능성을 남겨 두려면 **토큰은 그대로 두는 편이 편하다.** 시크릿이 있어도 워크플로가 실행되지 않으면 아무 일도 일어나지 않는다.
 
 ## 5. Vercel 프로젝트 현황 (이미 만들어져 있음)
 
@@ -197,7 +199,8 @@ git push -u origin main
 | Framework | Next.js (자동 감지) |
 | Root Directory | 저장소 루트 (모노레포 아님) |
 | Environment Variables | 없음 |
-| Git 연동 | ❌ **미연결** — 4-C 절차 필요 |
+| Git 연동 | ✅ **연결됨** (2026-08-20) — push 하면 Vercel 이 직접 배포한다 |
+| GitHub Actions | 사용하지 않음. 배포 워크플로는 `.github/workflows-archive/` 에 보관 |
 
 프로젝트를 로컬과 연결하는 정보는 `.vercel/project.json` 에 저장돼 있다(gitignore 대상).
 새 컴퓨터에서 배포하려면 먼저 한 번:

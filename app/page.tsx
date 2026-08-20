@@ -4,8 +4,9 @@ import { CallToAction } from "@/components/sections/CallToAction";
 import { CardsSection } from "@/components/sections/CardsSection";
 import { CredentialsSection } from "@/components/sections/CredentialsSection";
 import { Hero } from "@/components/sections/Hero";
+import { ReviewQuotes } from "@/components/sections/ReviewQuotes";
 import { Statement } from "@/components/sections/Statement";
-import { career, education, home, methods, photos } from "@/content";
+import { career, education, home, methods, photos, reviews } from "@/content";
 
 export const metadata: Metadata = {
   // 홈은 브랜드명을 뒤에 덧붙이지 않고 제목을 그대로 쓴다
@@ -20,8 +21,16 @@ const methodCards = methods.map((method) => ({
   body: [method.summary],
 }));
 
+/** 홈에 요약으로 보여줄 후기 — content/reviews.ts 의 quoteIndexes 순서대로 뽑는다 */
+const homeQuotes = reviews.homeSection.quoteIndexes.flatMap((index) => {
+  const quote = reviews.quotes[index];
+  return quote ? [quote] : [];
+});
+
 export default function HomePage() {
   return (
+    // 배경 교차: 히어로(흰) → 선언(회색) → 지도 방식(흰) → 강사 소개(회색)
+    // → 후기(흰) → 안내 선택(회색) → CTA(흰). 푸터는 흰 배경이지만 상단 보더로 구분된다.
     <>
       <Hero />
       <Statement />
@@ -39,8 +48,14 @@ export default function HomePage() {
         photo={photos.about}
         moreLink={home.instructorSummary.moreLink}
       />
-      <AudienceLinks />
-      <CallToAction cta={home.cta} alt />
+      <ReviewQuotes
+        id="reviews"
+        header={reviews.homeSection.header}
+        quotes={homeQuotes}
+        footerLink={reviews.homeSection.moreLink}
+      />
+      <AudienceLinks alt />
+      <CallToAction cta={home.cta} />
     </>
   );
 }

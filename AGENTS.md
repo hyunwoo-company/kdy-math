@@ -77,30 +77,27 @@ UI(페이지·섹션·컴포넌트·색·여백·타이포·애니메이션)를 
 
 **원칙: 사이트에 보이는 모든 한국어 문자열은 `content/` 안에만 존재한다.** 컴포넌트·페이지는 `content/` 모듈에서 import해서 쓴다. `aria-label`·`alt`·버튼 문구까지 포함한다. 비개발자가 AI에게 "content 폴더만 고쳐줘"라고 지시할 수 있어야 하는 것이 이 구조의 목적이다.
 
-⚠️ **현재 `content/` 는 재구성 진행 중이다.** 아래 표는 이 문서 작성 시점(`content/profile.ts` 단일 파일)의 실제 상태다.
-페이지별 파일(`content/index.ts` 배럴 + `site.ts` / `instructor.ts` / `home.ts` / `students.ts` / `parents.ts` / `videos.ts` / `contact.ts`)로 분리되면 **이 표를 반드시 갱신하라.** 표와 실제 파일이 어긋난 상태로 두지 마라.
+페이지별 파일로 분리돼 있고, `content/index.ts` 배럴을 통해서만 import한다. **컴포넌트·페이지는 항상 `@/content` 에서 가져온다** (`@/content/reviews` 처럼 개별 파일을 직접 가리키지 마라).
 
 | 무엇을 바꾸려면 | 파일 | export |
 |---|---|---|
-| 브라우저 탭 제목 · SEO 설명 | `content/profile.ts` | `site` (`title`, `description`) |
-| 강사 이름 / 히어로 라벨·대제목·부제 / 프로필 사진 경로 | `content/profile.ts` | `instructor` (`name`, `eyebrow`, `headline`, `subheadline`, `photo`) |
-| 전화번호 · 이메일 · 상담 시간 · 위치 | `content/profile.ts` | `contact` (`phone`, `phoneHref`, `email`, `emailHref`, `hours`, `location`) |
-| 숫자 지표 3개 | `content/profile.ts` | `stats[]` (`value`, `label`) |
-| 수업 철학 카드 | `content/profile.ts` | `principles[]` (`title`, `body`) |
-| 학력·경력 | `content/profile.ts` | `career[]` (`period`, `title`, `detail`) |
-| 학년별 커리큘럼 | `content/profile.ts` | `curriculum[]` (`grade`, `title`, `body`, `topics[]`) |
-| 학부모 안내(수업 형태·시간·교재 등) | `content/profile.ts` | `classInfo[]` (`label`, `value`) |
-| 자주 묻는 질문 | `content/profile.ts` | `faqs[]` (`q`, `a`) |
-| 상단 네비게이션 항목 | `content/profile.ts` | `navItems[]` (`label`, `href`) |
+| 브랜드명 · 홈 SEO · 상단 탭 목록 · 푸터 · 접근성 라벨 | `content/site.ts` | `site`, `seo`, `titleTemplate`, `nav`, `footer`, `a11y` |
+| 공용 타입 (`Cta`, `PageMeta`, `Photo`, `Intro`, `SectionHeader`, `CardItem`, `InfoItem`, `CtaBlock`) | `content/site.ts` | 위 타입들 |
+| 강사 이름 · 슬로건 · 핵심 카피 · 사진 · 학력 · 경력 · 지도 철학 · 지도 방식 3가지 | `content/instructor.ts` | `instructor`, `photos`, `education`, `career`, `philosophy`, `methods` |
+| 홈(`/`) 문구 | `content/home.ts` | `home` |
+| 학생용 안내(`/students`) | `content/students.ts` | `students` |
+| 학부모용 안내(`/parents`) | `content/parents.ts` | `parents` |
+| 수업 영상(`/videos`) | `content/videos.ts` | `videos`(목록), `videosPage`(문구) |
+| 수업 후기(`/reviews`) — 인용문 · 캡쳐 · 홈 요약 | `content/reviews.ts` | `reviews`, `ReviewQuote` |
+| 상담 문의(`/contact`) — 전화·이메일 | `content/contact.ts` | `contact`, `ContactChannel` |
 
-- 현재 import 경로는 `@/content/profile` 이다(`app/layout.tsx`, `components/**` 실측). **배럴(`content/index.ts`)이 도입되면 컴포넌트는 `@/content` 에서만 import하도록 통일하고, 이 문장도 갱신하라.**
 - `content/*.ts` 의 값에 `as const` 를 쓰면 `readonly` 배열이 된다. props 타입을 `readonly` 호환으로 잡아야 타입 에러가 안 난다.
-- **현재 `content/profile.ts` 의 값은 이전 단계의 더미다**(가상 인물 "김도윤", 더미 전화번호·이메일). 실제 강사 정보로 교체하는 작업이 진행 중이다. 연락처 실제 값은 아직 전달받지 못했다 — 임의로 만들어 넣지 말고 TODO 주석으로 남겨라.
+- **`content/reviews.ts` 는 개인정보가 걸린 파일이다.** 실명·학교·연락처를 넣지 마라. 파일 맨 위 주석의 4개 원칙을 반드시 읽고 지켜라. 캡쳐 이미지를 추가할 때는 `scripts/resize-review-images.js` 주석의 절차를 따른다.
+- 연락처(`content/contact.ts`)의 실제 값은 아직 전달받지 못했다 — 임의로 만들어 넣지 말고 TODO 주석으로 남겨라(11절).
 
 ## 5. 라우트 구조
 
-현재 존재: `app/page.tsx`(홈) 하나. 앵커 기반 단일 페이지 상태다.
-계획된 5탭 구조(구현 중):
+6탭 구조. 전부 구현돼 있다.
 
 | 라우트 | 파일 | 내용 |
 |---|---|---|
@@ -108,6 +105,7 @@ UI(페이지·섹션·컴포넌트·색·여백·타이포·애니메이션)를 
 | `/students` | `app/students/page.tsx` | 학생용 안내 |
 | `/parents` | `app/parents/page.tsx` | 학부모용 안내 |
 | `/videos` | `app/videos/page.tsx` | 수업 영상 (촬영 전 → "준비 중"을 정식 디자인) |
+| `/reviews` | `app/reviews/page.tsx` | 수업 후기 (인용 카드 + 카카오톡 캡쳐) |
 | `/contact` | `app/contact/page.tsx` | 상담 문의 (폼 없음, `tel:`/`mailto:` 만) |
 
 각 페이지는 `export const metadata` 로 개별 title/description을 둔다. 네비게이션은 `next/link` + `usePathname()` 기반이며, 활성 탭은 **텍스트 색 대비**로 표시한다(액센트 `#0071e3` 는 CTA 전용).
@@ -166,6 +164,23 @@ UI(페이지·섹션·컴포넌트·색·여백·타이포·애니메이션)를 
 4. 파일명은 용도가 드러나게: `kdy-hero.jpg`(홈 히어로, 1600×1067) / `kdy-about.jpg`(소개, 1067×1600) / `kdy-teaching.jpg`(수업·상담, 1067×1600).
 5. 이미지는 `next/image` 로 렌더하고 `alt` 문구는 `content/` 에서 가져온다.
 
+### 9-1. 수업 후기 캡쳐는 별도 파이프라인이다
+
+프로필 사진과 규격·주의사항이 다르므로 스크립트도 따로 둔다.
+
+| 항목 | 프로필 사진 | 후기 캡쳐 |
+|---|---|---|
+| 원본 | `_source-images/` | `_source-images/reviews/` |
+| 출력 | `public/images/` | `public/images/reviews/` |
+| 스크립트 | `scripts/resize-images.js` | `scripts/resize-review-images.js` |
+| 규격 | 긴 변 1600px, q85 | **가로 1200px, q88** (텍스트라 사진보다 품질을 높게) |
+
+- **개인정보가 화면에 남은 캡쳐를 커밋하지 마라.** 실명·연락처·학교명, 합격증/성적표 원본(수험번호·성명이 찍힌다), 식별 가능한 프로필 사진이 보이면 게시 대상에서 제외한다. 카카오톡 기본 아이콘, "쌤"/"학생" 표기, 발신 시각은 특정 정보가 아니므로 그대로 둔다.
+- 캡쳐 비율이 4320×816(5.3:1) 부터 953×1609(0.6:1) 까지 제각각이다. **썸네일을 고정 비율로 잘라내지 마라.** `aspect-[4/3] object-cover` 를 시도했다가 가로로 긴 캡쳐의 좌우가 잘려 "전교 49등"이 "9등"으로 보이는 문제를 겪었다. 지금은 원본 비율을 그대로 두고, `width / height >= 2.5` 인 캡쳐만 `md:col-span-2` 로 두 열을 차지하게 해서 글자가 읽히는 폭을 확보한다(`components/sections/ReviewShots.tsx`). 판정은 `content/reviews.ts` 의 `width`/`height` 로 자동 계산되므로 새 캡쳐에도 그대로 적용된다.
+- 원본을 잘라 저장하지도 마라. 확대 보기(`<dialog>`)가 원본 전체를 보여주는 것이 이 구조의 목적이다.
+- 게시할 캡쳐 목록은 `scripts/resize-review-images.js` 의 `JOBS` 가 단일 소스다. 여기에 넣지 않은 원본은 출력되지 않는다.
+- 후기 문구·캡쳐는 학생·학부모가 보낸 것이다. 새로 추가할 때는 **동의 여부를 사용자에게 먼저 확인하라.** 임의로 추가하지 마라.
+
 ## 10. 커밋 메시지 규칙
 
 - **한국어로 간결하게. "무엇을" 바꿨는지와 "왜" 바꿨는지.**
@@ -174,9 +189,10 @@ UI(페이지·섹션·컴포넌트·색·여백·타이포·애니메이션)를 
   - `학생용 안내 페이지 추가 — 학부모용과 톤 분리`
   - `프로필 사진 리사이즈본 교체 (원본 교체에 따른 재생성)`
 - 커밋·push는 사용자가 요청했을 때만 한다.
-- **`main` 에 push하면 GitHub Actions(`.github/workflows/deploy.yml`)가 Vercel 로 자동 배포한다.** Vercel 의 GitHub 연동은 쓰지 않는다(대시보드 연결이 실패하는 알려진 문제 — 배경은 [DEPLOY.md](DEPLOY.md) 4-C).
-- Actions 는 배포 전에 `npx tsc --noEmit` 과 `npm run lint` 를 돌린다. **이 둘이 실패하면 배포가 멈춘다.** 그러니 push 전에 로컬에서 먼저 통과시켜라.
-- push 후 배포 성공을 단정하지 마라. `gh run list --repo hyunwoo-company/kdy-math --limit 1` 로 Actions 결과를 확인하고 보고하라.
+- **`main` 에 push하면 Vercel 이 직접 감지해 자동 배포한다**(2026-08-20 부터 GitHub 연동 사용). GitHub Actions 는 배포에 관여하지 않는다.
+- ⚠️ **자동 검사가 없다.** 예전 Actions 워크플로가 배포 전에 돌려 주던 `npx tsc --noEmit` / `npm run lint` 가 사라졌다(Vercel 은 `npm run build` 만 한다). **push 전에 7절 검증 3종을 직접 돌려서 통과시켜라.** 이것이 유일한 안전망이다.
+- 예전 워크플로는 지우지 않고 `.github/workflows-archive/deploy.yml` 에 보관돼 있다. Actions 는 `.github/workflows/` 만 읽으므로 실행되지 않는다. 되살리는 절차는 그 파일 맨 위 주석과 [DEPLOY.md](DEPLOY.md) 4-D 에 있다. **이 보관본을 지우지 마라.**
+- push 후 배포 성공을 단정하지 마라. Vercel 대시보드 Deployments 또는 `npx vercel@latest ls --scope jenu8628s-projects` 로 확인하고 보고하라.
 - 이 파일 맨 위의 `BEGIN:nextjs-agent-rules` 관리 블록이 diff에 떠 있으면 지우지 말고 작업과 함께 커밋해 트리를 깨끗하게 유지한다.
 
 ## 11. 아직 확정되지 않은 것 (임의로 채우지 마라)

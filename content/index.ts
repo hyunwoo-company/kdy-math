@@ -11,6 +11,7 @@
  * - students.ts   학생용 안내(/students)
  * - parents.ts    학부모용 안내(/parents)
  * - videos.ts     수업 영상(/videos) — 영상 추가 방법이 파일 맨 위에 적혀 있습니다
+ * - reviews.ts    수업 후기(/reviews) — 개인정보 주의사항이 파일 맨 위에 적혀 있습니다
  * - contact.ts    상담 문의(/contact) — 🔴 실제 연락처로 교체가 필요합니다
  */
 
@@ -20,4 +21,5 @@ export * from "./home";
 export * from "./students";
 export * from "./parents";
 export * from "./videos";
+export * from "./reviews";
 export * from "./contact";

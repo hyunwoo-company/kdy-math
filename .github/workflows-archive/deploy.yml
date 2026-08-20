@@ -1,21 +1,27 @@
-# Vercel 자동 배포
+# ⚠️ 이 파일은 보관본이다. 실행되지 않는다.
 #
-# Vercel 의 GitHub 연동(Git Integration)을 쓰지 않고, GitHub Actions 가
-# Vercel CLI 를 실행해 배포한다.
+# GitHub Actions 는 `.github/workflows/` 안의 파일만 읽는다. 이 파일은
+# `.github/workflows-archive/` 에 있으므로 push 해도 아무 일도 일어나지 않는다.
 #
-# 왜 이 방식인가:
-#   Vercel 대시보드의 "Connect Git Repository" 가 무한 로딩으로 실패했다.
-#   (GitHub App 설치·재설치, 시크릿 창, Vercel 로그인 연결 재발급 모두 시도했으나 해결 안 됨.
-#    2026-07 무렵부터 동일 증상이 Vercel 커뮤니티에 다수 보고돼 있다.)
-#   이 워크플로는 Vercel 의 git 연동을 거치지 않으므로 그 문제와 무관하게 동작한다.
+# 왜 보관했는가:
+#   2026-08-20, Vercel 의 GitHub 연동(Git Integration)이 정상 연결됐다.
+#   이제 push 하면 Vercel 이 스스로 배포하므로 이 워크플로는 중복이다.
+#   그대로 두면 한 번의 push 에 배포가 두 번(Actions + Vercel) 일어난다.
 #
-#   나중에 Vercel 쪽 git 연동이 정상화되면 이 파일을 삭제해도 된다.
-#   단 그때는 Vercel 프로젝트 설정에서 저장소를 연결해야 배포가 이어진다.
-#   (연동 없이 이 파일만 지우면 배포가 멈춘다)
+# 되살리는 방법 (Vercel 연동이 다시 깨졌을 때):
+#   1. 폴더를 되돌린다
+#        git mv .github/workflows-archive/deploy.yml .github/workflows/deploy.yml
+#   2. VERCEL_TOKEN 시크릿이 남아 있는지 확인한다 (없으면 재발급)
+#        gh secret list --repo hyunwoo-company/kdy-math
+#        토큰 발급: https://vercel.com/account/tokens
+#        등록:      gh secret set VERCEL_TOKEN --repo hyunwoo-company/kdy-math
+#   3. Vercel 대시보드에서 git 연동을 끊는다 (안 끊으면 이중 배포가 된다)
+#        https://vercel.com/jenu8628s-projects/kdy-math/settings/git → Disconnect
+#   4. commit → push. Actions 탭에서 실행을 확인한다.
 #
-# 필요한 설정 (이미 완료됨):
-#   저장소 Settings → Secrets and variables → Actions 에 VERCEL_TOKEN 등록
-#   토큰 발급: https://vercel.com/account/tokens
+#   자세한 배경과 절차는 DEPLOY.md 4절에 있다.
+#
+# ── 아래는 원래 워크플로 내용 (수정하지 말고 그대로 보관) ──
 #
 # 동작:
 #   main 브랜치 push        → 운영 배포 (kdy-math.vercel.app 갱신)

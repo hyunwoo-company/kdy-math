@@ -112,6 +112,7 @@ export const nav: NavItem[] = [
   { href: "/students", label: "학생용 안내" },
   { href: "/parents", label: "학부모용 안내" },
   { href: "/videos", label: "수업 영상" },
+  { href: "/reviews", label: "수업 후기" },
   { href: "/contact", label: "상담 문의" },
 ];
 
