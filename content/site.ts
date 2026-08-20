@@ -116,6 +116,13 @@ export const nav: NavItem[] = [
   { href: "/contact", label: "상담 문의" },
 ];
 
+/**
+ * 모바일 헤더 우측(메뉴 버튼 왼쪽)에 놓이는 상담 버튼.
+ * 명함 QR 로 들어온 방문자가 메뉴를 열지 않고 바로 연락할 수 있게 둡니다.
+ * 데스크톱에는 상단 탭에 "상담 문의" 가 이미 보이므로 표시하지 않습니다.
+ */
+export const headerCta: Cta = { label: "상담 문의", href: "/contact" };
+
 export const footer = {
   /** 푸터 링크 목록 위 소제목 */
   navLabel: "둘러보기",
