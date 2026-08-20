@@ -55,8 +55,6 @@ export const reviews = {
   quotesHeader: {
     eyebrow: "받은 메시지",
     title: "학생과 학부모님이 보내주신 말",
-    lead:
-      "이름이 드러나는 부분은 모두 가렸습니다. 문장은 받은 그대로 두었습니다.",
   } satisfies SectionHeader,
 
   quotes: [
@@ -153,8 +151,6 @@ export const reviews = {
     header: {
       eyebrow: "실제 대화",
       title: "받은 메시지 캡쳐",
-      lead:
-        "이름과 연락처 등 개인정보가 보이는 부분은 게시하지 않았습니다. 누르면 크게 볼 수 있습니다.",
     } satisfies SectionHeader,
 
     /** 확대 보기 버튼·닫기 버튼의 스크린리더 라벨 */
