@@ -2,7 +2,6 @@ import Link from "next/link";
 import { ChevronRight } from "lucide-react";
 import { Reveal } from "@/components/ui/Reveal";
 import { Section } from "@/components/ui/Section";
-import { SectionHeading } from "@/components/ui/SectionHeading";
 import { home } from "@/content";
 import { cn } from "@/lib/utils";
 
@@ -28,11 +27,14 @@ export function AudienceLinks({ alt = false }: AudienceLinksProps) {
 
   return (
     <Section id="audience" labelledBy="audience-title" alt={alt}>
-      <Reveal>
-        <SectionHeading id="audience-title" {...home.audience.header} />
-      </Reveal>
+      {/* 머리말은 화면에 두지 않는다 — 카드 제목("학생용 안내"/"학부모용 안내")만으로
+          뜻이 통한다. 다만 Section 의 aria-labelledby 가 가리킬 제목은 있어야 하므로
+          스크린리더 전용으로 남긴다. */}
+      <h2 id="audience-title" className="sr-only">
+        {home.audience.srTitle}
+      </h2>
 
-      <Reveal delay={0.08} className="mt-16">
+      <Reveal>
         <ul className="grid gap-6 md:grid-cols-2 md:gap-8">
           {home.audience.cards.map((card) => (
             <li key={card.href}>

@@ -147,8 +147,13 @@ UI(페이지·섹션·컴포넌트·색·여백·타이포·애니메이션)를 
 1. **`tailwind-merge` 가 커스텀 타이포 토큰을 삼킨다** — 이전 세션 실측 기록: `twMerge("text-body-l text-text-secondary")` → `"text-text-secondary"` (font-size 토큰 소멸). `cn()` 을 통과하는 한 문자열에 font-size 토큰과 색 토큰을 함께 넣지 마라.
 2. **`@utility` 는 최상위 전용** — `@media` 안에 중첩하면 동작하지 않는다. 모드별 값은 CSS 변수 스와핑으로 처리한다.
 3. **폰트는 `next/font` 가 아니라 순수 CSS 로 로드한다** — `app/layout.tsx` 가 `./pretendard.css` 를 import하고, `app/globals.css` 의 `--font-sans` 가 패밀리명 `"Pretendard Variable"` 을 직접 참조한다. `--font-pretendard` 같은 변수는 **없다**. `next/font/local` 로 되돌리지 마라(2MB 단일 파일을 무조건 전송하게 된다).
-4. **`app/pretendard.css` 는 BOM 없이(UTF-8 no BOM) 저장해야 한다.** BOM 이 붙으면 PostCSS 단계에서 `Invalid dangling combinator in selector` 로 빌드가 실패한다. Windows PowerShell 의 `Set-Content -Encoding utf8` 은 BOM 을 붙이므로 이 파일 생성에 쓰지 마라.
-5. **`app/pretendard.css` 를 손으로 수정하지 마라.** `pretendard` 패키지 버전을 올렸을 때만 재생성한다(파일 상단 주석에 절차가 있다). 폰트 파일 92개는 `public/fonts/pretendard/` 에 있고 `@font-face` 의 `unicode-range` 로 분할돼 있어, 브라우저는 페이지에 실제 쓰인 글자 범위만 내려받는다.
+4. **`Reveal` 의 IntersectionObserver `threshold` 에 비율을 쓰면 큰 섹션이 통째로 사라진다.**
+   `threshold: 0.2` 는 "요소의 20%가 보이면 등장"이라는 뜻인데, **요소가 뷰포트보다 높으면 그 20%가 화면에 동시에 담길 수 없어 `isIntersecting` 이 영원히 false 로 남는다.** 그러면 `html[data-js] .reveal { opacity: 0 }` 이 풀리지 않아 콘텐츠가 안 보인다.
+   실제 사고: 후기 캡쳐를 10장 → 23장으로 늘리자 그리드 높이가 5300px 이 되어 `/reviews` 의 캡쳐가 **전부 안 보였다**(2026-08-21). 10장(약 2000px)일 때는 우연히 동작하고 있었을 뿐이다.
+   지금은 `{ threshold: 0, rootMargin: "0px 0px -80px 0px" }` 다. **비율 threshold 로 되돌리지 마라.**
+   그리고 **`Reveal` 을 검증할 때 `is-visible` 클래스를 직접 붙여서 확인하지 마라.** 그러면 트리거 자체가 검증되지 않아 이 버그를 놓친다. 실제로 스크롤해서 나타나는지를 봐야 한다.
+5. **`app/pretendard.css` 는 BOM 없이(UTF-8 no BOM) 저장해야 한다.** BOM 이 붙으면 PostCSS 단계에서 `Invalid dangling combinator in selector` 로 빌드가 실패한다. Windows PowerShell 의 `Set-Content -Encoding utf8` 은 BOM 을 붙이므로 이 파일 생성에 쓰지 마라.
+6. **`app/pretendard.css` 를 손으로 수정하지 마라.** `pretendard` 패키지 버전을 올렸을 때만 재생성한다(파일 상단 주석에 절차가 있다). 폰트 파일 92개는 `public/fonts/pretendard/` 에 있고 `@font-face` 의 `unicode-range` 로 분할돼 있어, 브라우저는 페이지에 실제 쓰인 글자 범위만 내려받는다.
 
 ## 9. 이미지 추가·교체 절차
 

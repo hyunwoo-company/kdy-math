@@ -71,10 +71,12 @@ export const home = {
   },
 
   audience: {
-    header: {
-      eyebrow: "안내",
-      title: "읽는 사람에 따라 안내가 다릅니다",
-    } satisfies SectionHeader,
+    /**
+     * 화면에는 보이지 않고 스크린리더만 읽는 섹션 이름.
+     * 카드 두 장(학생용/학부모용)만으로 뜻이 통해서 머리말을 화면에서 뺐지만,
+     * 섹션에 이름이 없으면 스크린리더 사용자가 어떤 영역인지 알 수 없습니다.
+     */
+    srTitle: "학생용·학부모용 안내",
     cards: [
       {
         title: "학생용 안내",

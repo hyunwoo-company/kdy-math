@@ -64,7 +64,16 @@ export function Reveal({
           }
         }
       },
-      { threshold: 0.2 },
+      /**
+       * threshold 에 비율(예: 0.2)을 쓰면 안 된다.
+       * 요소가 뷰포트보다 높으면 "요소의 20%" 가 화면에 동시에 담길 수 없어
+       * isIntersecting 이 영원히 false 가 되고, 콘텐츠가 opacity 0 인 채로 남는다.
+       * 후기 캡쳐 23장 그리드(높이 5300px)가 실제로 이 문제로 통째로 안 보였다.
+       *
+       * 그래서 threshold 는 0(1px 만 걸쳐도 감지)으로 두고, "조금 올라왔을 때"
+       * 라는 느낌은 rootMargin 하단 음수값으로 만든다. 요소 크기와 무관하게 동작한다.
+       */
+      { threshold: 0, rootMargin: "0px 0px -80px 0px" },
     );
 
     observer.observe(el);
