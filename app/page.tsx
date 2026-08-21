@@ -4,9 +4,9 @@ import { CallToAction } from "@/components/sections/CallToAction";
 import { CardsSection } from "@/components/sections/CardsSection";
 import { CredentialsSection } from "@/components/sections/CredentialsSection";
 import { Hero } from "@/components/sections/Hero";
-import { ReviewQuotes } from "@/components/sections/ReviewQuotes";
+import { ReviewPreview } from "@/components/sections/ReviewPreview";
 import { Statement } from "@/components/sections/Statement";
-import { career, education, home, methods, photos, reviews } from "@/content";
+import { career, education, home, methods, photos } from "@/content";
 
 export const metadata: Metadata = {
   // 홈은 브랜드명을 뒤에 덧붙이지 않고 제목을 그대로 쓴다
@@ -20,12 +20,6 @@ const methodCards = methods.map((method) => ({
   title: method.title,
   body: [method.summary],
 }));
-
-/** 홈에 요약으로 보여줄 후기 — content/reviews.ts 의 quoteIndexes 순서대로 뽑는다 */
-const homeQuotes = reviews.homeSection.quoteIndexes.flatMap((index) => {
-  const quote = reviews.quotes[index];
-  return quote ? [quote] : [];
-});
 
 export default function HomePage() {
   return (
@@ -48,12 +42,7 @@ export default function HomePage() {
         photo={photos.about}
         moreLink={home.instructorSummary.moreLink}
       />
-      <ReviewQuotes
-        id="reviews"
-        header={reviews.homeSection.header}
-        quotes={homeQuotes}
-        footerLink={reviews.homeSection.moreLink}
-      />
+      <ReviewPreview id="reviews" />
       <AudienceLinks alt />
       <CallToAction cta={home.cta} />
     </>

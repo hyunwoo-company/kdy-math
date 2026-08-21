@@ -88,7 +88,7 @@ UI(페이지·섹션·컴포넌트·색·여백·타이포·애니메이션)를 
 | 학생용 안내(`/students`) | `content/students.ts` | `students` |
 | 학부모용 안내(`/parents`) | `content/parents.ts` | `parents` |
 | 수업 영상(`/videos`) | `content/videos.ts` | `videos`(목록), `videosPage`(문구) |
-| 수업 후기(`/reviews`) — 인용문 · 캡쳐 · 홈 요약 | `content/reviews.ts` | `reviews`, `ReviewQuote` |
+| 수업 후기(`/reviews`) — 캡쳐 목록 · 홈 후기 모음 이미지 | `content/reviews.ts` | `reviews` |
 | 상담 문의(`/contact`) — 전화·이메일 | `content/contact.ts` | `contact`, `ContactChannel` |
 
 - `content/*.ts` 의 값에 `as const` 를 쓰면 `readonly` 배열이 된다. props 타입을 `readonly` 호환으로 잡아야 타입 에러가 안 난다.
@@ -176,6 +176,9 @@ UI(페이지·섹션·컴포넌트·색·여백·타이포·애니메이션)를 
 | 규격 | 긴 변 1600px, q85 | **가로 1200px, q88** (텍스트라 사진보다 품질을 높게) |
 
 - **개인정보가 화면에 남은 캡쳐를 커밋하지 마라.** 실명·연락처·학교명, 합격증/성적표 원본(수험번호·성명이 찍힌다), 식별 가능한 프로필 사진이 보이면 게시 대상에서 제외한다. 카카오톡 기본 아이콘, "쌤"/"학생" 표기, 발신 시각은 특정 정보가 아니므로 그대로 둔다.
+- **프로필 사진이 왼쪽 가장자리에 걸린 캡쳐는 `cropLeft` 로 잘라낸다**(스크립트의 `JOBS` 항목에 픽셀값을 적는다). 블러가 아니라 잘라내는 이유는 두 가지다 — 블러는 강도가 약하면 복원 여지가 남고, 카톡 말풍선은 오른쪽에 있어 잘라도 내용이 보존된다.
+- **고려대 입학허가통지서 캡쳐는 영구 제외다.** 통지서에 성명·수험번호가 찍혀 있고 같은 캡쳐의 메시지 본문에도 학생 실명이 그대로 있다. 이 소식은 게시하지 않는다. 되살리지 마라.
+- 홈에는 캡쳐를 모아 놓은 이미지 한 장(`public/images/reviews/review-collage.jpg`)을 쓴다. **이 이미지 안에 글자를 넣지 마라** — 제목은 `content/reviews.ts` 의 `homeSection.header` 로 화면에 얹어야 검색엔진과 스크린리더가 읽는다. 원본이 891px 이므로 표시 폭을 720px 이하로 제한한다(그보다 크게 늘리면 흐려진다).
 - 캡쳐 비율이 4320×816(5.3:1) 부터 953×1609(0.6:1) 까지 제각각이다. **썸네일을 고정 비율로 잘라내지 마라.** `aspect-[4/3] object-cover` 를 시도했다가 가로로 긴 캡쳐의 좌우가 잘려 "전교 49등"이 "9등"으로 보이는 문제를 겪었다. 지금은 원본 비율을 그대로 두고, `width / height >= 2.5` 인 캡쳐만 `md:col-span-2` 로 두 열을 차지하게 해서 글자가 읽히는 폭을 확보한다(`components/sections/ReviewShots.tsx`). 판정은 `content/reviews.ts` 의 `width`/`height` 로 자동 계산되므로 새 캡쳐에도 그대로 적용된다.
 - 원본을 잘라 저장하지도 마라. 확대 보기(`<dialog>`)가 원본 전체를 보여주는 것이 이 구조의 목적이다.
 - 게시할 캡쳐 목록은 `scripts/resize-review-images.js` 의 `JOBS` 가 단일 소스다. 여기에 넣지 않은 원본은 출력되지 않는다.
