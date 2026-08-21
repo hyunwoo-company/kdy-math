@@ -152,6 +152,7 @@ UI(페이지·섹션·컴포넌트·색·여백·타이포·애니메이션)를 
    실제 사고: 후기 캡쳐를 10장 → 23장으로 늘리자 그리드 높이가 5300px 이 되어 `/reviews` 의 캡쳐가 **전부 안 보였다**(2026-08-21). 10장(약 2000px)일 때는 우연히 동작하고 있었을 뿐이다.
    지금은 `{ threshold: 0, rootMargin: "0px 0px -80px 0px" }` 다. **비율 threshold 로 되돌리지 마라.**
    그리고 **`Reveal` 을 검증할 때 `is-visible` 클래스를 직접 붙여서 확인하지 마라.** 그러면 트리거 자체가 검증되지 않아 이 버그를 놓친다. 실제로 스크롤해서 나타나는지를 봐야 한다.
+   같은 이유로 `isIntersecting` 만 믿어서도 안 된다. 요소가 관찰 영역을 **통과하는 프레임이 없으면**(빠른 플링 스크롤, 앵커 점프, 뒤로가기 스크롤 복원) 콜백이 한 번도 true 로 오지 않는다. 그래서 `entry.boundingClientRect.bottom < 0`(이미 위로 지나감)도 함께 검사한다. 이 조건을 지우지 마라.
 5. **`app/pretendard.css` 는 BOM 없이(UTF-8 no BOM) 저장해야 한다.** BOM 이 붙으면 PostCSS 단계에서 `Invalid dangling combinator in selector` 로 빌드가 실패한다. Windows PowerShell 의 `Set-Content -Encoding utf8` 은 BOM 을 붙이므로 이 파일 생성에 쓰지 마라.
 6. **`app/pretendard.css` 를 손으로 수정하지 마라.** `pretendard` 패키지 버전을 올렸을 때만 재생성한다(파일 상단 주석에 절차가 있다). 폰트 파일 92개는 `public/fonts/pretendard/` 에 있고 `@font-face` 의 `unicode-range` 로 분할돼 있어, 브라우저는 페이지에 실제 쓰인 글자 범위만 내려받는다.
 

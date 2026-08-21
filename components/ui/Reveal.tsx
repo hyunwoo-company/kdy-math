@@ -58,7 +58,14 @@ export function Reveal({
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) {
+          /**
+           * isIntersecting 만 보면 안 된다.
+           * 요소가 관찰 영역을 "통과하는 프레임" 이 없는 경우 — 빠른 플링 스크롤,
+           * 앵커(#id)로 바로 점프, 뒤로가기 시 스크롤 위치 복원 — 콜백이 한 번도
+           * true 로 오지 않아 콘텐츠가 opacity 0 인 채로 남는다.
+           * 그래서 "이미 위로 지나간 요소"(bottom < 0)도 보이게 처리한다.
+           */
+          if (entry.isIntersecting || entry.boundingClientRect.bottom < 0) {
             setVisible(true);
             observer.disconnect();
           }
